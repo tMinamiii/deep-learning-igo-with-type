@@ -36,6 +36,10 @@ class Move():
 
 
 class GoString():
+    '''
+    呼吸点を管理するために、石が連なった塊（連）を表現する
+    '''
+
     def __init__(self, color: Player, stones: Iterable[Point], liberties: Iterable[Point]):
         self.color: Player = color
         self.stones: Set[Point] = set(stones)
@@ -49,6 +53,12 @@ class GoString():
         self.liberties.add(point)
 
     def merged_with(self, go_string: GoString) -> GoString:
+        '''
+        プレイヤーが石を置いて連と連とマージする
+        相手の連を奪うこと？
+        assert go_string.colort == self.colorとあるので敵の連を奪う以外で
+        このメソッドを呼び出してはいけない
+        '''
         assert go_string.color == self.color
         combined_stones = self.stones | go_string.stones
         return GoString(
@@ -68,6 +78,8 @@ class GoString():
             self.liberties == other.liberties
 
 
+# 盤上に石を置くロジックと、石を取るロジックを担当
+# 最初のアイデアは、盤上の各点の状態を追跡する 19 x 19 の配列を作成することです。
 class Board():
     def __init__(self, num_rows: int, num_cols: int):
         self.num_rows: int = num_rows
@@ -115,27 +127,30 @@ class Board():
             elif neighbor_string.color == player:
                 if neighbor_string not in adjacent_same_color:
                     adjacent_same_color.append(neighbor_string)
-                else:
-                    if neighbor_string not in adjacent_opposite_color:
-                        adjacent_opposite_color.append(neighbor_string)
+            elif neighbor_string not in adjacent_opposite_color:
+                adjacent_opposite_color.append(neighbor_string)
             new_string = GoString(player, [point], liberties)
 
             for same_color_string in adjacent_same_color:
                 new_string = new_string.merged_with(same_color_string)
+
             for new_string_point in new_string.stones:
                 self._grid[new_string_point] = new_string
+
             for other_color_string in adjacent_opposite_color:
                 other_color_string.remove_liberty(point)
+
             for other_color_string in adjacent_opposite_color:
                 if other_color_string.num_liberties == 0:
                     self._remove_string(other_color_string)
 
 
+# 盤面の全ての石が含むだけでなく、どちらの手番かと、前の状態が何であったを記録します
 class GameState():
     def __init__(self, board: Board, next_player: Player, previous: Optional[GameState], move: Optional[Move]):
         self.board = board
         self.next_player = next_player
-        self.previous = previous
+        self.previous_state = previous
         self.last_move = move
 
     def apply_move(self, move: Move) -> GameState:
@@ -148,8 +163,20 @@ class GameState():
         return GameState(next_board, self.next_player.other, self, move)
 
     @classmethod
-    def new_game(cls, board_size: Union[int, Tuple[int, int]]):
+    def new_game(cls, board_size: Union[int, Tuple[int, int]]) -> GameState:
         if isinstance(board_size, int):
             board_size = (board_size, board_size)
         board = Board(*board_size)
         return GameState(board, Player.black, None, None)
+
+    def is_over(self) -> bool:
+        if self.last_move is None:
+            return False
+        if self.last_move.is_resign:
+            return True
+        if self.previous_state is not None:
+            second_last_move = self.previous_state.last_move
+            if second_last_move is None:
+                return False
+            return self.last_move.is_pass and second_last_move.is_pass
+        return False
