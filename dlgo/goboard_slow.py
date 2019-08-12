@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Dict, Iterable, List, Optional, Set
+from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 
 from dlgo.gotypes import Player, Point
 
@@ -132,14 +132,24 @@ class Board():
 
 
 class GameState():
-    def __init__(self, board: Board, next_player: Player, previous, move: Move):
+    def __init__(self, board: Board, next_player: Player, previous: Optional[GameState], move: Optional[Move]):
         self.board = board
         self.next_player = next_player
         self.previous = previous
         self.last_move = move
 
-    def apply_move(self, move: Move):
+    def apply_move(self, move: Move) -> GameState:
         if move.is_play:
             next_board = copy.deepcopy(self.board)
             if move.point is not None:
                 next_board.place_stone(self.next_player, move.point)
+        else:
+            next_board = self.board
+        return GameState(next_board, self.next_player.other, self, move)
+
+    @classmethod
+    def new_game(cls, board_size: Union[int, Tuple[int, int]]):
+        if isinstance(board_size, int):
+            board_size = (board_size, board_size)
+        board = Board(*board_size)
+        return GameState(board, Player.black, None, None)
