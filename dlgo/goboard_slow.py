@@ -78,9 +78,12 @@ class GoString():
             self.liberties == other.liberties
 
 
-# 盤上に石を置くロジックと、石を取るロジックを担当
-# 最初のアイデアは、盤上の各点の状態を追跡する 19 x 19 の配列を作成することです。
 class Board():
+    '''
+    盤上に石を置くロジックと、石を取るロジックを担当
+    最初のアイデアは、盤上の各点の状態を追跡する 19 x 19 の配列を作成することです。
+    '''
+
     def __init__(self, num_rows: int, num_cols: int):
         self.num_rows: int = num_rows
         self.num_cols: int = num_cols
@@ -96,7 +99,7 @@ class Board():
             return None
         return string.color
 
-    def set_go_string(self, point: Point) -> Optional[GoString]:
+    def get_go_string(self, point: Point) -> Optional[GoString]:
         string = self._grid.get(point)
         if string is None:
             return None
@@ -145,8 +148,11 @@ class Board():
                     self._remove_string(other_color_string)
 
 
-# 盤面の全ての石が含むだけでなく、どちらの手番かと、前の状態が何であったを記録します
 class GameState():
+    '''
+    盤面の全ての石が含むだけでなく、どちらの手番かと、前の状態が何であったを記録します
+    '''
+
     def __init__(self, board: Board, next_player: Player, previous: Optional[GameState], move: Optional[Move]):
         self.board = board
         self.next_player = next_player
@@ -179,4 +185,15 @@ class GameState():
             if second_last_move is None:
                 return False
             return self.last_move.is_pass and second_last_move.is_pass
+        return False
+
+    def is_move_self_capture(self, player: Player, move: Move) -> bool:
+        if not move.is_play:
+            return False
+        next_board: Board = copy.deepcopy(self.board)
+        if move.point is not None:
+            next_board.place_stone(player, move.point)
+            new_string = next_board.get_go_string(move.point)
+            if new_string is not None:
+                return new_string.num_liberties == 0
         return False
