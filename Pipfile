@@ -4,16 +4,21 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pylint = "*"
+yapf = "*"
+mypy = "*"
+flake8 = "*"
+autopep8 = "*"
+pycodestyle = "*"
+neovim = "*"
+pynvim = "*"
+ipython = "*"
+jedi = "*"
+isort = "*"
 
 [packages]
 keras = "*"
-pycodestyle = "*"
-autopep8 = "*"
-flake8 = "*"
-mypy = "*"
 pandas = "*"
-pylint = "*"
-yapf = "*"
 
 [requires]
 python_version = "3.7"

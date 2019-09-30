@@ -6,14 +6,12 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 from dlgo.gotypes import Player, Point
 
 
-'''
-アメリカ囲碁協会では打つ,パス,投了の3つのタイプをMoveで表す
-'''
-
-
 class Move():
+    '''
+    アメリカ囲碁協会では打つ,パス,投了の3つのタイプをMoveで表す
+    '''
     def __init__(self, point: Optional[Point] = None, is_pass: bool = False, is_resign: bool = False):
-        assert(point is not None) ^ is_pass ^ is_resign
+        assert (point is not None) ^ is_pass ^ is_resign
         self.point: Optional[Point] = point
         self.is_play: bool = (point is not None)
         self.is_pass: bool = is_pass
@@ -39,7 +37,6 @@ class GoString():
     '''
     呼吸点を管理するために、石が連なった塊（連）を表現する
     '''
-
     def __init__(self, color: Player, stones: Iterable[Point], liberties: Iterable[Point]):
         self.color: Player = color
         self.stones: Set[Point] = set(stones)
@@ -61,11 +58,7 @@ class GoString():
         '''
         assert go_string.color == self.color
         combined_stones = self.stones | go_string.stones
-        return GoString(
-            self.color,
-            combined_stones,
-            (self.liberties | go_string.liberties) - combined_stones
-        )
+        return GoString(self.color, combined_stones, (self.liberties | go_string.liberties) - combined_stones)
 
     @property
     def num_liberties(self):
@@ -83,7 +76,6 @@ class Board():
     盤上に石を置くロジックと、石を取るロジックを担当
     最初のアイデアは、盤上の各点の状態を追跡する 19 x 19 の配列を作成することです。
     '''
-
     def __init__(self, num_rows: int, num_cols: int):
         self.num_rows: int = num_rows
         self.num_cols: int = num_cols
@@ -152,7 +144,6 @@ class GameState():
     '''
     盤面の全ての石が含むだけでなく、どちらの手番かと、前の状態が何であったを記録します
     '''
-
     def __init__(self, board: Board, next_player: Player, previous: Optional[GameState], move: Optional[Move]):
         self.board = board
         self.next_player = next_player
